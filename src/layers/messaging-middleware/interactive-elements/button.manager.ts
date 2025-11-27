@@ -39,7 +39,7 @@ export class ButtonManager {
         }
       };
 
-      await this.sendToWhatsApp(payload);
+      await this.sendToWhatsAppWithRetry(payload);
       console.log(`✅ Botones enviados a ${to}: ${buttons.map(b => b.title).join(', ')}`);
 
     } catch (error) {
@@ -93,14 +93,124 @@ export class ButtonManager {
     };
   }
 
-  private async sendToWhatsApp(payload: ButtonPayload): Promise<void> {
-    const phoneNumberId = config.whatsapp.phoneNumberId;
-    const accessToken = config.whatsapp.accessToken;
+  /**
+   * Envía mensaje a WhatsApp con sistema de reintentos robusto
+   */
+  private async sendToWhatsAppWithRetry(payload: ButtonPayload): Promise<any> {
+    const maxRetries = 3;
+    const baseDelay = 1000;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 segundos para botones
 
-    const response = await fetch(`https://graph.facebook.com/v22.0/${phoneNumberId}/messages`, {
+      try {
+        console.log(`📤 Intento ${attempt} de enviar botones a ${payload.to}...`);
+
+        const response = await fetch(
+          `https://graph.facebook.com/v22.0/${config.whatsapp.phoneNumberId}/messages`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${config.whatsapp.accessToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal
+          }
+        );
+
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('✅ Botones enviados exitosamente:', {
+            messageId: data.messages?.[0]?.id,
+            recipient: payload.to
+          });
+          return data;
+        }
+
+        // Manejar errores HTTP
+        const errorText = await response.text();
+        console.error(`❌ Error HTTP ${response.status} en botones:`, errorText);
+        
+        // No reintentar en errores 4xx (excepto 429 - Too Many Requests)
+        if (response.status >= 400 && response.status < 500 && response.status !== 429) {
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+
+        // Si es rate limiting, esperar más tiempo
+        if (response.status === 429) {
+          const retryAfter = response.headers.get('retry-after') || '60';
+          console.log(`⏳ Rate limit detectado, esperando ${retryAfter} segundos...`);
+          await this.delay(parseInt(retryAfter) * 1000);
+          continue;
+        }
+
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+
+      } catch (error: any) {
+        clearTimeout(timeoutId);
+        console.error(`❌ Intento ${attempt} fallido para botones:`, error.message);
+
+        // Métricas de diagnóstico
+        console.error('📊 Diagnóstico botones:', {
+          destinatario: payload.to,
+          intento: attempt,
+          timestamp: new Date().toISOString(),
+          error: error.message,
+          tipoError: error.name
+        });
+
+        // No reintentar si fue abortado manualmente o errores de cliente
+        if (error.name === 'AbortError' || 
+            (error.message.includes('HTTP 4') && !error.message.includes('HTTP 429'))) {
+          throw error;
+        }
+
+        // Último intento
+        if (attempt === maxRetries) {
+          throw new Error(`Fallido después de ${maxRetries} intentos: ${error.message}`);
+        }
+
+        // Backoff exponencial con jitter
+        const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 1000;
+        console.log(`⏳ Reintentando botones en ${Math.round(delay)}ms...`);
+        await this.delay(delay);
+      }
+    }
+
+    throw new Error('Todos los reintentos fallaron');
+  }
+
+  /**
+   * Delay helper con soporte para AbortSignal
+   */
+  private delay(ms: number, signal?: AbortSignal): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(resolve, ms);
+      
+      if (signal) {
+        signal.addEventListener('abort', () => {
+          clearTimeout(timer);
+          reject(new Error('Delay aborted'));
+        });
+      }
+    });
+  }
+
+  /**
+   * Método original mantenido por compatibilidad (puede ser removido luego)
+   * @deprecated Usar sendToWhatsAppWithRetry en su lugar
+   */
+  private async sendToWhatsApp(payload: ButtonPayload): Promise<void> {
+    console.warn('⚠️  Usando método sendToWhatsApp sin reintentos. Migrar a sendToWhatsAppWithRetry.');
+    
+    const response = await fetch(`https://graph.facebook.com/v22.0/${config.whatsapp.phoneNumberId}/messages`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
+        'Authorization': `Bearer ${config.whatsapp.accessToken}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload)
