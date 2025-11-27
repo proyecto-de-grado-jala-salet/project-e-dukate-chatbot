@@ -45,7 +45,6 @@ export class AvailabilityService {
       ]);
       
       const isAvailable = parseInt(result.rows[0].count) === 0;
-      console.log(`📅 Disponibilidad ${dateString} ${startTime}-${endTime}: ${isAvailable ? '✅ Libre' : '❌ Ocupado'}`);
       
       return isAvailable;
       
@@ -89,7 +88,7 @@ export class AvailabilityService {
         );
         
         if (isAvailable) {
-          console.log(`✅ Fecha disponible encontrada: ${targetDate.toDateString()}`);
+          console.log(`✅ Fecha disponible encontrada`);
           return targetDate;
         }
         

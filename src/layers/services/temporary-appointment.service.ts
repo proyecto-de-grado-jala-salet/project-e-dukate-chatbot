@@ -14,7 +14,6 @@ export class TemporaryAppointmentService {
    */
   async createTemporaryAppointment(request: CreateTemporaryAppointmentRequestDto): Promise<string> {
     try {
-      console.log("📝 Creando cita temporal:", JSON.stringify(request, null, 2));
 
       const response = await fetch(`${this.baseUrl}/TemporaryAppointments`, {
         method: 'POST',
@@ -31,7 +30,7 @@ export class TemporaryAppointmentService {
       }
 
       const result = await response.json();
-      console.log("✅ Cita temporal creada con ID:", result.id);
+      console.log("✅ Cita temporal creada con ID");
       return result.id;
 
     } catch (error) {

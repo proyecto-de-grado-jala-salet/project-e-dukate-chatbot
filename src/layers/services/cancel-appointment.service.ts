@@ -79,7 +79,6 @@ export class CancelAppointmentService {
     extractPatientDataWithGemini: (text: string) => Promise<any>
   ): Promise<{ success: boolean; patient?: PatientData; message?: string }> => {
     try {
-      console.log(`📝 Procesando datos para cancelación de ${from}: ${text}`);
 
       // Buscar paciente por CI o nombre
       const patient = await this.findPatientForCancellation(
@@ -124,14 +123,14 @@ export class CancelAppointmentService {
         const identityCardString = ciMatch[1];
         const identityCardNumber = parseInt(identityCardString, 10);
 
-        console.log(`🔍 Buscando paciente por CI: ${identityCardNumber}`);
+        console.log(`🔍 Buscando paciente por CI`);
 
         const patient =
           await this.realPatientService.searchPatientByIdentityCard(
             identityCardNumber
           );
         if (patient) {
-          console.log("✅ Paciente encontrado por CI:", patient);
+          console.log("✅ Paciente encontrado por CI:");
           return patient;
         }
       }
@@ -179,7 +178,6 @@ export class CancelAppointmentService {
     message?: string;
   }> => {
     try {
-      console.log(`🔍 Buscando citas para paciente ID: ${patientId}`);
 
       // Obtener TODAS las citas del paciente
       const appointments = await this.getPatientAppointments(patientId);
@@ -194,14 +192,8 @@ export class CancelAppointmentService {
         return { success: false, message: "No hay citas programadas" };
       }
 
-      console.log(`📋 Total de citas encontradas: ${appointments.length}`);
-
       // Obtener todas las sesiones cancelables de todas las citas
       const allCancelableSessions = this.getAllCancelableSessions(appointments);
-
-      console.log(
-        `🔍 Sesiones cancelables encontradas: ${allCancelableSessions.length}`
-      );
 
       if (allCancelableSessions.length === 0) {
         await sendMessage(
@@ -215,10 +207,6 @@ export class CancelAppointmentService {
         );
         return { success: false, message: "No hay sesiones cancelables" };
       }
-
-      console.log(
-        `📋 Sesiones cancelables para mostrar: ${allCancelableSessions.length}`
-      );
 
       // Formatear y mostrar las sesiones
       const { message: appointmentsMessage, sessionMap } =
@@ -284,16 +272,8 @@ export class CancelAppointmentService {
   ): AppointmentData[] => {
     const now = new Date();
 
-    console.log(
-      `🔍 Filtrando citas cancelables. Total: ${appointments.length}`
-    );
-
     const cancelableAppointments = appointments.filter((appointment) => {
-      console.log(`🔍 Procesando cita:`, {
-        id: appointment.id,
-        hasSessions: !!appointment.scheduledSessions,
-        sessionCount: appointment.scheduledSessions?.length,
-      });
+      
       // Si no tiene sesiones, no la mostramos
       if (
         !appointment.scheduledSessions ||
@@ -311,22 +291,15 @@ export class CancelAppointmentService {
           const isCancelable =
             session.status === "Scheduled" || session.status === "Rescheduled";
 
-          console.log(
-            `🔍 Sesión ${session.id}: ${sessionDate} - Futura: ${isFuture}, Cancelable: ${isCancelable}, Status: ${session.status}`
-          );
-
           return isFuture && isCancelable;
         }
       );
-
-      console.log(
-        `🔍 Cita ${appointment.id} tiene sesiones cancelables: ${hasCancelableSession}`
-      );
+      
       return hasCancelableSession;
     });
 
     console.log(
-      `✅ Citas cancelables después del filtro: ${cancelableAppointments.length}`
+      `✅ Citas cancelables después del filtro`
     );
     return cancelableAppointments;
   };
@@ -338,9 +311,7 @@ export class CancelAppointmentService {
     patientId: string
   ): Promise<AppointmentData[]> => {
     try {
-      console.log(`🔍 Solicitando citas para paciente ID: ${patientId}`);
 
-      // 🔥 CAMBIO AQUÍ: Usar el nuevo endpoint específico para pacientes
       const response = await fetch(`${this.baseUrl}/patient/${patientId}`, {
         method: "GET",
         headers: {
@@ -348,24 +319,19 @@ export class CancelAppointmentService {
         },
       });
 
-      console.log(
-        `📡 Response status: ${response.status} ${response.statusText}`
-      );
-
       if (response.ok) {
         const data = await response.json();
         console.log(
-          "📊 Datos recibidos del backend:",
-          JSON.stringify(data, null, 2)
+          "📊 Datos recibidos del backend:"
         );
 
         // Verificar la estructura de la respuesta
         if (data.items && Array.isArray(data.items)) {
-          console.log(`✅ Encontradas ${data.items.length} citas`);
+          console.log(`✅ Encontradas data item citas`);
           return data.items;
         } else if (Array.isArray(data)) {
           console.log(
-            `✅ Encontradas ${data.length} citas (formato array directo)`
+            `✅ Encontradas citas`
           );
           return data;
         } else {
@@ -408,7 +374,7 @@ export class CancelAppointmentService {
         const data = await response.json();
         if (data.items && Array.isArray(data.items)) {
           console.log(
-            `✅ Encontradas ${data.items.length} citas en endpoint antiguo`
+            `✅ Encontradas citas en endpoint antiguo`
           );
           return data.items;
         }
@@ -700,7 +666,7 @@ export class CancelAppointmentService {
 
       if (response.ok) {
         console.log(
-          `✅ Sesión ${sessionId} de cita ${appointmentId} cancelada exitosamente`
+          `✅ Sesión cancelada exitosamente`
         );
         return true;
       } else {

@@ -33,11 +33,7 @@ export class AppointmentService {
     appointmentData: AppointmentDto
   ): Promise<PreviewSlot[] | null> {
     try {
-      console.log(
-        "🔍 Solicitando preview de citas:",
-        JSON.stringify(appointmentData, null, 2)
-      );
-
+      
       const response = await fetch(`${this.baseUrl}/preview`, {
         method: "POST",
         headers: {
@@ -45,10 +41,6 @@ export class AppointmentService {
         },
         body: JSON.stringify(appointmentData),
       });
-
-      console.log(
-        `📡 Response status: ${response.status} ${response.statusText}`
-      );
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -73,7 +65,6 @@ export class AppointmentService {
       }
 
       const previewData = await response.json();
-      console.log("✅ Preview obtenido:", previewData);
 
       return previewData;
     } catch (error) {

@@ -24,7 +24,6 @@ export class RealPatientService {
 
   async createRealPatient(request: CreateRealPatientRequest): Promise<string> {
     try {
-      console.log('📝 Creando paciente REAL en el backend...');
       
       const response = await fetch(`https://${this.baseUrl}/Patients`, {
         method: 'POST',
@@ -40,26 +39,23 @@ export class RealPatientService {
       }
 
       const result = await response.json();
-      console.log('✅ Paciente REAL creado. Response:', result);
 
       // 🔥 OPCIÓN 1: Si el backend retorna el ID directamente
       if (result.id) {
-        console.log(`✅ ID del paciente obtenido del response: ${result.id}`);
+        console.log(`✅ ID del paciente obtenido del response`);
         return result.id;
       }
       
       if (result.patientId) {
-        console.log(`✅ ID del paciente obtenido del response: ${result.patientId}`);
+        console.log(`✅ ID del paciente obtenido del response`);
         return result.patientId;
       }
 
-      // 🔥 OPCIÓN 2: Si no retorna ID, buscar por CI
-      console.log('🔄 Backend no retornó ID, buscando por CI...');
       const identityCard = request.patientData.IdentityCard;
       const patientFromDB = await this.searchPatientByIdentityCard(identityCard);
       
       if (patientFromDB && patientFromDB.Id) {
-        console.log(`✅ ID del paciente obtenido de BD: ${patientFromDB.Id}`);
+        console.log(`✅ ID del paciente obtenido de BD`);
         return patientFromDB.Id;
       }
 
@@ -73,7 +69,6 @@ export class RealPatientService {
 
   async searchPatientByIdentityCard(identityCard: number): Promise<any> {
     try {
-      console.log(`🔍 Buscando paciente en BD con CI: ${identityCard}`);
       
       const result = await pool.query(`
         SELECT 
@@ -101,12 +96,7 @@ export class RealPatientService {
       }
 
       const patient = result.rows[0];
-      console.log(`✅ Paciente encontrado en BD:`, {
-        Id: patient.Id,
-        Names: patient.Names,
-        IdentityCard: patient.IdentityCard
-      });
-
+      
       return patient;
     } catch (error) {
       console.error('❌ Error searching patient in database:', error);
@@ -116,7 +106,6 @@ export class RealPatientService {
 
   async getPatientById(patientId: string): Promise<any> {
     try {
-      console.log(`🔍 Obteniendo paciente por ID: ${patientId}`);
       
       const result = await pool.query(`
         SELECT 

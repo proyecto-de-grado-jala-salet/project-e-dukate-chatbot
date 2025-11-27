@@ -15,7 +15,6 @@ export class WhatsAppService {
    */
   async sendMessage(message: WhatsAppMessage): Promise<boolean> {
     try {
-      console.log('📤 Enviando mensaje WhatsApp a:', message.to);
       
       const response = await fetch(
         `https://graph.facebook.com/v18.0/${this.phoneNumberId}/messages`,

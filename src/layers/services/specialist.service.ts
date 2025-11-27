@@ -35,8 +35,6 @@ export class SpecialistService {
         ORDER BY "YearsOfExperience" DESC, "LastNamePaternal", "Names"
       `, [specialtyId]);
       
-      console.log(`✅ Se encontraron ${result.rows.length} especialistas para especialidad ${specialtyId}`);
-      
       // 🔥 CONVERTIR todos los IDs a string para consistencia
       const specialists = result.rows.map(row => ({
         ...row,

@@ -52,18 +52,6 @@ export class ScheduleService {
         [specialistId]
       );
 
-      console.log(
-        `✅ Se encontraron ${result.rows.length} horarios disponibles para especialista ${specialistId}`
-      );
-
-      // 🔥 LOG DETALLADO de los datos
-      console.log("🔍 Datos de horarios encontrados:");
-      result.rows.forEach((row) => {
-        console.log(
-          `- TimeSlotId: ${row.timeslot_id}, ScheduleId: ${row.schedule_id}, Day: ${row.DayOfWeek}, Time: ${row.StartTime}-${row.EndTime}`
-        );
-      });
-
       // Formatear los resultados
       const availableSlots = result.rows.map((row) => {
         const dayOfWeek = this.formatDayOfWeekFromNumber(row.DayOfWeek);

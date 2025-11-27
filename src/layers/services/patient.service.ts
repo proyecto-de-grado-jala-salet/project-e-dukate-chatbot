@@ -24,7 +24,6 @@ export class PatientService {
    */
   async parsePatientData(message: string): Promise<PatientData | null> {
     try {
-      console.log("🔍 Parseando mensaje con Gemini:", message);
 
       // Prompt específico para identificar nombres y apellidos
       const prompt = `
@@ -58,8 +57,6 @@ Ejemplos:
         const response = await result.response;
         const jsonText = response.text().trim();
 
-        console.log("🤖 Respuesta de Gemini:", jsonText);
-
         // Extraer JSON de la respuesta (por si Gemini agrega texto adicional)
         const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
         if (!jsonMatch) {
@@ -89,7 +86,6 @@ Ejemplos:
           identityCard: parsedData.identityCard,
         };
 
-        console.log("✅ Datos parseados con Gemini:", patientData);
         return patientData;
       } catch (geminiError) {
         console.error("❌ Error con Gemini, usando fallback:", geminiError);
@@ -111,8 +107,6 @@ Ejemplos:
         .replace(/[^\w\s,]/g, "")
         .replace(/\s+/g, " ")
         .trim();
-
-      console.log("🔄 Usando parseo de respaldo:", cleanMessage);
 
       // Buscar número de carnet
       const ciMatch = cleanMessage.match(/\b(\d{5,10})\b/);
@@ -177,7 +171,6 @@ Ejemplos:
    */
   async findPatient(patientData: PatientData) {
     try {
-      console.log("🔍 Buscando paciente en BD:", patientData);
 
       const result = await pool.query(
         'SELECT * FROM "Patients" WHERE "IdentityCard" = $1',
@@ -186,8 +179,7 @@ Ejemplos:
 
       if (result.rows.length === 0) {
         console.log(
-          "❌ No se encontró paciente con CI:",
-          patientData.identityCard
+          "❌ No se encontró paciente con CI:"
         );
         return null;
       }
@@ -199,13 +191,6 @@ Ejemplos:
         ...patient,
         Id: patient.Id.toString(), // Asegurar que sea string
       };
-
-      console.log("✅ Paciente encontrado:", {
-        Id: patientWithStringId.Id,
-        Names: patientWithStringId.Names,
-        LastNamePaternal: patientWithStringId.LastNamePaternal,
-        IdentityCard: patientWithStringId.IdentityCard,
-      });
 
       const nameMatch = this.verifyNameMatch(patient, patientData);
 

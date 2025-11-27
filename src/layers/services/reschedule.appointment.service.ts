@@ -115,9 +115,6 @@ export class RescheduleAppointmentService {
     extractPatientDataWithGemini: (text: string) => Promise<any>
   ): Promise<{ success: boolean; patient?: PatientData; message?: string }> => {
     try {
-      console.log(
-        `📝 Procesando datos para reprogramación de ${from}: ${text}`
-      );
 
       // Buscar paciente por CI o nombre (similar a cancelación)
       const patient = await this.findPatientForReschedule(
@@ -162,14 +159,12 @@ export class RescheduleAppointmentService {
         const identityCardString = ciMatch[1];
         const identityCardNumber = parseInt(identityCardString, 10);
 
-        console.log(`🔍 Buscando paciente por CI: ${identityCardNumber}`);
-
         const patient =
           await this.realPatientService.searchPatientByIdentityCard(
             identityCardNumber
           );
         if (patient) {
-          console.log("✅ Paciente encontrado por CI:", patient);
+          console.log("✅ Paciente encontrado por CI:");
           return patient;
         }
       }
@@ -216,9 +211,6 @@ export class RescheduleAppointmentService {
     message?: string;
   }> => {
     try {
-      console.log(
-        `🔍 Buscando citas para reprogramación - paciente ID: ${patientId}`
-      );
 
       // Obtener TODAS las citas del paciente
       const appointments = await this.getPatientAppointments(patientId);
@@ -236,10 +228,6 @@ export class RescheduleAppointmentService {
       // Obtener todas las sesiones reprogramables
       const allReschedulableSessions =
         this.getAllReschedulableSessions(appointments);
-
-      console.log(
-        `🔍 Sesiones reprogramables encontradas: ${allReschedulableSessions.length}`
-      );
 
       if (allReschedulableSessions.length === 0) {
         await sendMessage(
@@ -317,7 +305,6 @@ export class RescheduleAppointmentService {
     patientId: string
   ): Promise<AppointmentData[]> => {
     try {
-      console.log(`🔍 Solicitando citas para paciente ID: ${patientId}`);
 
       const response = await fetch(`${this.baseUrl}/patient/${patientId}`, {
         method: "GET",
@@ -330,7 +317,6 @@ export class RescheduleAppointmentService {
         const data = await response.json();
 
         if (data.items && Array.isArray(data.items)) {
-          console.log(`✅ Encontradas ${data.items.length} citas`);
           return data.items;
         } else if (Array.isArray(data)) {
           console.log(
@@ -394,8 +380,7 @@ export class RescheduleAppointmentService {
       message += `*${sessionCounter}.* 🩺 *Especialidad:* ${appointment.specialtyName}\n`;
       message += `   👨‍⚕️ *Especialista:* ${appointment.specialistName}\n`;
       message += `   📅 *Fecha actual:* ${formattedDate}\n`;
-      message += `   🕐 *Horario actual:* ${startTime} a ${endTime}\n`;
-      message += `   📊 *Estado:* ${session.status}\n\n`;
+      message += `   🕐 *Horario actual:* ${startTime} a ${endTime}\n\n`;
 
       sessionMap.set(sessionCounter, {
         appointment: appointment,
@@ -419,7 +404,6 @@ export class RescheduleAppointmentService {
   ): Promise<RescheduleSelectionResult> => {
     try {
       const sessionNumber = parseInt(text.trim());
-      console.log(`🔢 Número de sesión seleccionado: ${sessionNumber}`);
 
       if (isNaN(sessionNumber)) {
         await sendMessage(
@@ -442,19 +426,10 @@ export class RescheduleAppointmentService {
       const selectedAppointment = selectedData.appointment;
       const selectedSession = selectedData.session;
 
-      console.log(`🎯 Sesión seleccionada:`, {
-        appointmentId: selectedAppointment.id,
-        sessionId: selectedSession.id,
-        specialistId: selectedAppointment.specialistId,
-        currentDate: selectedSession.startSessionDateTime,
-      });
-
       // 🔥 CAMBIO IMPORTANTE: Solo obtener los días disponibles, NO los slots todavía
       const availableDays = await this.getAvailableDaysOnly(
         selectedAppointment.specialistId
       );
-
-      console.log(`📅 Días disponibles obtenidos: ${availableDays.length}`);
 
       if (availableDays.length === 0) {
         console.log("❌ No hay días disponibles, enviando mensaje al usuario");
@@ -498,9 +473,6 @@ export class RescheduleAppointmentService {
     specialistId: string
   ): Promise<AvailableDay[]> => {
     try {
-      console.log(
-        `🔍 Obteniendo días disponibles para especialista ID: ${specialistId}`
-      );
 
       // Obtener el especialista con sus horarios
       const specialistResponse = await fetch(
@@ -530,8 +502,6 @@ export class RescheduleAppointmentService {
         return [];
       }
 
-      console.log(`📅 Schedules encontrados: ${schedules.length}`);
-
       // Mapear días de la semana disponibles
       const availableDays: AvailableDay[] = [];
       const dayMap: { [key: string]: string } = {
@@ -552,14 +522,10 @@ export class RescheduleAppointmentService {
           schedule.timeSlots.length > 0
       );
 
-      console.log(`✅ Schedules activos: ${activeSchedules.length}`);
-
       // Para cada schedule activo, crear objeto de día SIN slots todavía
       for (const schedule of activeSchedules) {
         const dayOfWeek = schedule.dayOfWeek;
         const displayName = dayMap[dayOfWeek] || dayOfWeek;
-
-        console.log(`✅ Día disponible: ${dayOfWeek} (${displayName})`);
 
         availableDays.push({
           dayOfWeek: dayOfWeek,
@@ -568,7 +534,6 @@ export class RescheduleAppointmentService {
         });
       }
 
-      console.log(`📋 Días disponibles finales: ${availableDays.length}`);
       return availableDays;
     } catch (error) {
       console.error("❌ Error obteniendo días disponibles:", error);
@@ -607,20 +572,12 @@ export class RescheduleAppointmentService {
     dayOfWeek: string
   ): Promise<AvailableSlot[]> => {
     try {
-      console.log(
-        `🔍 Obteniendo slots para día: ${dayOfWeek}, cita: ${appointmentId}, sesión: ${sessionId}`
-      );
 
       const request = {
         sessionId: sessionId,
         targetDayOfWeek: dayOfWeek,
         lookAheadWeeks: 2,
       };
-
-      console.log(
-        "📤 Enviando request de reschedule-preview:",
-        JSON.stringify(request, null, 2)
-      );
 
       const response = await fetch(
         `${this.baseUrl}/${appointmentId}/reschedule-preview`,
@@ -633,17 +590,11 @@ export class RescheduleAppointmentService {
         }
       );
 
-      console.log(
-        `📡 Response status: ${response.status} ${response.statusText}`
-      );
-
       if (response.ok) {
         const data = await response.json();
-        console.log(`✅ Slots obtenidos del backend:`, data);
 
         // El endpoint devuelve { availableSlots: [...] } o directamente el array
         const slots = data.availableSlots || data || [];
-        console.log(`✅ Total de slots: ${slots.length}`);
 
         return slots.map((slot: any) => ({
           timeSlotId: slot.timeSlotId,
@@ -707,7 +658,6 @@ export class RescheduleAppointmentService {
     dayOfWeek: string
   ): Promise<AvailableSlot[]> => {
     try {
-      console.log(`🔄 Generando slots alternativos para: ${dayOfWeek}`);
 
       // Obtener la fecha del próximo día de la semana
       const nextDate = this.getNextDateForDay(dayOfWeek);
@@ -757,7 +707,6 @@ export class RescheduleAppointmentService {
         });
       });
 
-      console.log(`✅ Slots alternativos generados: ${slots.length}`);
       return slots;
     } catch (error) {
       console.error("❌ Error generando slots alternativos:", error);
@@ -877,17 +826,12 @@ export class RescheduleAppointmentService {
       }
 
       const selectedDay = availableDays[dayNumber - 1];
-      console.log(`✅ Día seleccionado: ${selectedDay.displayName}`);
 
       // 🔥 AHORA obtener los slots disponibles para este día específico
       const availableSlots = await this.getAvailableSlotsForDay(
         selectedAppointment.id,
         selectedSession.id,
         selectedDay.dayOfWeek
-      );
-
-      console.log(
-        `🕐 Slots disponibles para ${selectedDay.displayName}: ${availableSlots.length}`
       );
 
       if (availableSlots.length === 0) {
@@ -978,13 +922,6 @@ export class RescheduleAppointmentService {
       }
 
       const selectedSlot = selectedDay.availableSlots[slotNumber - 1];
-
-      console.log(`✅ Slot seleccionado:`, {
-        timeSlotId: selectedSlot.timeSlotId,
-        startDateTime: selectedSlot.startDateTime,
-        endDateTime: selectedSlot.endDateTime,
-        formattedTime: selectedSlot.formattedTime,
-      });
 
       // Mostrar confirmación
       await this.showRescheduleConfirmation(

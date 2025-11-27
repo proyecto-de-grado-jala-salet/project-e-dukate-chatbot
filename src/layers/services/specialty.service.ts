@@ -18,8 +18,6 @@ export class SpecialtyService {
         ORDER BY "TypeOfSpecialty"
       `);
       
-      console.log(`✅ Se encontraron ${result.rows.length} especialidades`);
-      
       // 🔥 CONVERTIR Id a string para consistencia
       const specialties = result.rows.map(row => ({
         ...row,

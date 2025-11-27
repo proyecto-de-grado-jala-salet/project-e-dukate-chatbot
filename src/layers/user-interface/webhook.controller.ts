@@ -2750,8 +2750,6 @@ Ejemplo: ["Lunes", "Miércoles"]
         return null;
       }
 
-      console.log(`✅ ID del paciente válido: ${patientId}`);
-
       // 🔥 VERIFICAR que tenemos timeSlotIds
       if (
         !userSelection.selectedSlots ||
@@ -2785,12 +2783,6 @@ Ejemplo: ["Lunes", "Miércoles"]
             // 🔥 USAR timeSlotId (el ID real del TimeSlot)
             const timeSlotId = slot.timeSlotId;
 
-            console.log(
-              `🕐 Slot ${index + 1} - TimeSlotId: ${timeSlotId}, Day: ${
-                slot.dayOfWeek
-              }, Time: ${slot.startTime}-${slot.endTime}`
-            );
-
             const sessionDto: ScheduledSessionDto = {
               TimeSlotId: timeSlotId,
               DayOfWeek: this.convertToEnglishDay(slot.dayOfWeek),
@@ -2802,15 +2794,6 @@ Ejemplo: ["Lunes", "Miércoles"]
           }
         ),
       };
-
-      console.log("📤 Enviando datos para preview:", {
-        PatientId: appointmentDto.PatientId,
-        TimeSlots: appointmentDto.ScheduledSessions.map((s) => ({
-          TimeSlotId: s.TimeSlotId,
-          Day: s.DayOfWeek,
-          Time: `${s.StartTime}-${s.EndTime}`,
-        })),
-      });
 
       const previewSlots = await this.appointmentService.getAppointmentPreview(
         appointmentDto
@@ -2831,7 +2814,6 @@ Ejemplo: ["Lunes", "Miércoles"]
 
   private formatTimeForBackend(timeString: string): string {
     try {
-      console.log(`🕐 Formateando hora: "${timeString}"`);
 
       // Si ya está en formato HH:MM:SS, dejarlo igual
       if (timeString.match(/^\d{1,2}:\d{2}:\d{2}$/)) {
@@ -2857,9 +2839,6 @@ Ejemplo: ["Lunes", "Miércoles"]
         });
       }
 
-      console.log(
-        `⚠️  Hora en formato no reconocido: "${timeString}", usando tal cual`
-      );
       return timeString;
     } catch (error) {
       console.error("Error formateando hora para backend:", error);
@@ -3041,7 +3020,6 @@ Si el usuario quiere programar una cita, ya tenemos un flujo específico para es
       );
 
       const data = await response.json();
-      console.log("✅ Mensaje enviado a WhatsApp exitosamente:", data);
     } catch (error: any) {
       console.error(
         "❌ Error crítico enviando mensaje después de todos los reintentos:",
