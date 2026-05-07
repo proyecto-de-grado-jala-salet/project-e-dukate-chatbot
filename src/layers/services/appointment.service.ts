@@ -24,7 +24,7 @@ export interface PreviewSlot {
 
 export class AppointmentService {
   private baseUrl =
-    "https://project-e-dukate-backend-production.up.railway.app/api/Appointments";
+    "https://e-dukate-backend-production.up.railway.app/api/Appointments";
 
   /**
    * Obtiene el preview de las citas con las fechas calculadas

@@ -45,7 +45,7 @@ export class CancelAppointmentService {
     this.realPatientService = new RealPatientService();
     this.buttonManager = new ButtonManager();
     this.baseUrl =
-      "https://project-e-dukate-backend-production.up.railway.app/api/Appointments";
+      "https://e-dukate-backend-production.up.railway.app/api/Appointments";
   }
 
   /**

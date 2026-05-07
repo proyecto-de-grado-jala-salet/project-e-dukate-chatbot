@@ -81,7 +81,7 @@ export class RescheduleAppointmentService {
     this.realPatientService = new RealPatientService();
     this.buttonManager = new ButtonManager();
     this.baseUrl =
-      "https://project-e-dukate-backend-production.up.railway.app/api/Appointments";
+      "https://e-dukate-backend-production.up.railway.app/api/Appointments";
   }
 
   /**
@@ -476,7 +476,7 @@ export class RescheduleAppointmentService {
 
       // Obtener el especialista con sus horarios
       const specialistResponse = await fetch(
-        `https://project-e-dukate-backend-production.up.railway.app/api/Specialists/${specialistId}`,
+        `https://e-dukate-backend-production.up.railway.app/api/Specialists/${specialistId}`,
         {
           method: "GET",
           headers: {

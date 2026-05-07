@@ -72,7 +72,7 @@ export class LinkManager {
     to: string,
     temporaryAppointmentId: string
   ): Promise<void> {
-    const paymentUrl = `https://e-dukate.up.railway.app/pago/${temporaryAppointmentId}`;
+    const paymentUrl = `https://e-dukate-production.up.railway.app/pago/${temporaryAppointmentId}`;
     const message =
       "Para que podamos agregar tu cita por favor entra a la siguiente pagina web para realizar un 50% del pago para sus citas.";
     const displayText = "Pagar 50%";

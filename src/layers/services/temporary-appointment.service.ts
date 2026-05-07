@@ -7,7 +7,7 @@ export interface CreateTemporaryAppointmentRequestDto {
 }
 
 export class TemporaryAppointmentService {
-  private baseUrl = "https://project-e-dukate-backend-production.up.railway.app/api";
+  private baseUrl = "https://e-dukate-backend-production.up.railway.app/api";
 
   /**
    * Crear una cita temporal en el backend

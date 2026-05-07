@@ -7,7 +7,7 @@ import cors from 'cors';
 const app = express();
 
 const corsOptions = {
-  origin: 'https://e-dukate.up.railway.app',
+  origin: 'https://e-dukate-production.up.railway.app',
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
